@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+ 
+    <style type="text/css">
+ 
+ 
+        body
+        {
+            background: url("s_bd.jpg") repeat 0 0;
+        }
+ 
+        .container
+        {
+            position: relative;
+            width: 400px;
+            height: 160px;
+            margin: 100px auto 0;
+            background: url(s_title.png) no-repeat 0 0;
+            background-size: 100% 100%;
+        }
+ 
+        #front, #back
+        {
+            position: absolute;
+            width: 200px;
+            left: 50%;
+            top: 100%;
+            margin-left: -130px;
+            height: 80px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+ 
+    </style>
+ 
+</head>
+<body>
+ 
+<div class="container">
+    <canvas id="back" width="200" height="80"></canvas>
+    <canvas id="front" width="200" height="80"></canvas>
+</div>
+ 
+<script
+src="https://code.jquery.com/jquery-3.3.1.min.js"
+integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+crossorigin="anonymous"></script>
+<script type="text/javascript">
+ function Canvas2D($canvas)
+{
+    var context = $canvas[0].getContext("2d"),
+        width = $canvas[0].width,
+        height = $canvas[0].height,
+        pageOffset = $canvas.offset();
+ 
+ 
+    context.font = "24px Verdana, Geneva, sans-serif";
+    context.textBaseline = "top";
+ 
+ 
+    /**
+     * 绘制矩形
+     * @param start
+     * @param end
+     * @param isFill
+     */
+    this.drawRect = function (start, end, isFill)
+    {
+        var w = end.x - start.x , h = end.y - start.y;
+        if (isFill)
+        {
+            context.fillRect(start.x, start.y, w, h);
+        }
+        else
+        {
+            context.strokeRect(start.x, start.y, w, h);
+        }
+    };
+ 
+    /**
+     * 根据书写的文本，得到该文本在canvas上书写的中心位置的左上角坐标
+     * @param text
+     * @returns {{x: number, y: number}}
+     */
+    this.caculateTextCenterPos = function (text)
+    {
+        var metrics = context.measureText(text);
+        console.log(metrics);
+//        context.font = fontSize + "px Verdana, Geneva, sans-serif";
+        var textWidth = metrics.width;
+        var textHeight = parseInt(context.font);
+ 
+        return {
+            x: width / 2 - textWidth / 2,
+            y: height / 2 - textHeight / 2
+        };
+    }
+    this.width = function ()
+    {
+        return width;
+    }
+    this.height = function ()
+    {
+        return height;
+    }
+    this.resetOffset = function ()
+    {
+        pageOffset = $canvas.offset();
+    }
+    /**
+     * 当屏幕大小发生变化，重新计算offset
+     */
+    $(window).resize(function ()
+    {
+        pageOffset = $canvas.offset();
+    });
+ 
+    /**
+     * 将页面上的左边转化为canvas中的坐标
+     * @param pageX
+     * @param pageY
+     * @returns {{x: number, y: number}}
+     */
+    this.getCanvasPoint = function (pageX, pageY)
+    {
+        return{
+            x: pageX - pageOffset.left,
+            y: pageY - pageOffset.top
+        }
+    }
+    /**
+     * 清除区域，此用户鼠标擦出刮奖涂层
+     * @param start
+     * @returns {*}
+     */
+    this.clearRect = function (start)
+    {
+        context.clearRect(start.x, start.y, 10, 10);
+        return this;
+    };
+ 
+    /**
+     *将文本绘制到canvas的中间
+     * @param text
+     * @param fill
+     */
+    this.drawTextInCenter = function (text, fill)
+    {
+        var point = this.caculateTextCenterPos(text);
+        if (fill)
+        {
+            context.fillText(text, point.x, point.y);
+        }
+        else
+        {
+            context.strokeText(text, point.x, point.y);
+        }
+    };
+    /**
+     * 设置画笔宽度
+     * @param newWidth
+     * @returns {*}
+     */
+    this.penWidth = function (newWidth)
+    {
+        if (arguments.length)
+        {
+            context.lineWidth = newWidth;
+            return this;
+        }
+        
+        return context.lineWidth;
+    };
+ 
+    /**
+     * 设置画笔颜色
+     * @param newColor
+     * @returns {*}
+     */
+    this.penColor = function (newColor)
+    {
+        if (arguments.length)
+        {
+            console.log('dddddddddd')
+            context.strokeStyle = newColor;
+            context.fillStyle = newColor;
+            return this;
+        }
+        
+        return context.strokeStyle;
+    };
+ 
+    /**
+     * 设置字体大小
+     * @param fontSize
+     * @returns {*}
+     */
+    this.fontSize = function (fontSize)
+    {
+        if (arguments.length)
+        {
+            context.font = fontSize + "px Verdana, Geneva, sans-serif";
+ 
+            return this;
+        }
+ 
+        return context.fontSize;
+    }
+ 
+ 
+}
+
+</script>
+
+<script type="text/javascript">
+
+ function GuaGuaLe(idFront, idBack)
+{
+    this.$eleBack = $("#" + idBack);
+    this.$eleFront = $("#" + idFront);
+    this.frontCanvas = new Canvas2D(this.$eleFront);
+    this.backCanvas = new Canvas2D(this.$eleBack);
+ 
+    this.isStart = false;
+ 
+}
+ 
+GuaGuaLe.prototype = {
+    constructor: GuaGuaLe,
+    /**
+     * 将用户的传入的参数和默认参数做合并
+     * @param desAttr
+     * @returns {{frontFillColor: string, backFillColor: string, backFontColor: string, backFontSize: number, msg: string}}
+     */
+    mergeAttr: function (desAttr)
+    {
+        var defaultAttr = {
+            frontFillColor: "pink",
+            backFillColor: "gold",
+            backFontColor: "red",
+            backFontSize: 24,
+            msg: "谢谢惠顾"
+        };
+        for (var p in  desAttr)
+        {
+            defaultAttr[p] = desAttr[p];
+        }
+ 
+        return defaultAttr;
+ 
+    },
+ 
+ 
+    init: function (desAttr)
+    {
+ 
+        var attr = this.mergeAttr(desAttr);
+ 
+        //初始化canvas
+        this.backCanvas.penColor(attr.backFillColor);
+        this.backCanvas.fontSize(attr.backFontSize);
+        this.backCanvas.drawRect({x: 0, y: 0}, {x: this.backCanvas.width(), y: this.backCanvas.height()}, true);
+        this.backCanvas.penColor(attr.backFontColor);
+        this.backCanvas.drawTextInCenter(attr.msg, true);
+        //初始化canvas
+        this.frontCanvas.penColor(attr.frontFillColor);
+        this.frontCanvas.drawRect({x: 0, y: 0}, {x: this.frontCanvas.width(), y: this.frontCanvas.height()}, true);
+ 
+        var _this = this;
+        //设置事件
+        this.$eleFront.mousedown(function (event)
+        {
+            _this.mouseDown(event);
+        }).mousemove(function (event)
+            {
+                _this.mouseMove(event);
+            }).mouseup(function (event)
+            {
+                _this.mouseUp(event);
+            });
+    },
+    mouseDown: function (event)
+    {
+        this.isStart = true;
+        this.startPoint = this.frontCanvas.getCanvasPoint(event.pageX, event.pageY);
+    },
+    mouseMove: function (event)
+    {
+        if (!this.isStart)return;
+        var p = this.frontCanvas.getCanvasPoint(event.pageX, event.pageY);
+        var k;
+        if (p.x > this.startPoint.x)
+        {
+            k = (p.y - this.startPoint.y) / (p.x - this.startPoint.x);
+            for (var i = this.startPoint.x; i < p.x; i += 5)
+            {
+                this.frontCanvas.clearRect({x: i, y: (this.startPoint.y + (i - this.startPoint.x) * k)});
+            }
+        } else
+        {
+            k = (p.y - this.startPoint.y) / (p.x - this.startPoint.x);
+            for (var i = this.startPoint.x; i > p.x; i -= 5)
+            {
+                this.frontCanvas.clearRect({x: i, y: (this.startPoint.y + ( i - this.startPoint.x  ) * k)});
+            }
+        }
+        this.startPoint = p;
+
+        this.frontCanvas.clearRect(p);
+    },
+    mouseUp: function (event)
+    {
+        this.isStart = false;
+    }
+};
+
+</script>
+
+<script type="text/javascript">
+
+    $(function ()
+    {
+        var guaguale = new GuaGuaLe("front", "back");
+        guaguale.init({msg: "￥5000000.00"});
+    });
+</script>
+</body>
+</html>
