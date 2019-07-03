@@ -55,10 +55,13 @@ function unknown(){
 
 unknown.prototype = {
    init(){
-       
+       console.log(init);
    },
    say(){
-     
+
+   },
+   another(){
+
    }
 }
 
