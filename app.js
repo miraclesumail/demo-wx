@@ -49,6 +49,18 @@ App({
 	}
 })
 
+function unknown(){
+
+}
+
+unknown.prototype = {
+   init(){
+       
+   },
+   say(){
+     
+   }
+}
 
 import React, { Component } from 'react';
 import { View, Text, WebView, StyleSheet, BackHandler, TouchableHighlight, TouchableOpacity } from 'react-native';
