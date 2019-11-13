@@ -85,3 +85,61 @@ img.addEventListener('load', function(e) {
 </script>
 </body>
 </html>
+
+const treeData = [
+    {
+        title: '树1',
+        key: '树1',
+        children: [
+            {
+                title: '树1-1',
+                key: '树1-1',
+                children: [
+                    {
+                        title: '树1-1-1',
+                        key: '树1-1-1',
+                    }
+                ]
+            },
+            {
+                title: '树1-2',
+                key: '树1-2',
+                children: [
+                    {
+                        title: '树1-2-1',
+                        key: '树1-2-1'
+                    },
+                    {
+                        title: '树1-2-2',
+                        key: '树1-2-2',
+                        children: [
+                            {
+                                title: '树1-2-2-1',
+                                key: '树1-2-2-1',
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+                title: '树2-1',
+                key: '树2-1'
+    }
+]
+
+const getTreeKeys = (treeData, level = 1, parent = null) => {
+    const keysCol = [];
+    for(let i = 0; i < treeData.length; i++) {
+        const temp = treeData[i];
+        keysCol.push({key: temp.key, level, parent, children: temp.children ? [...temp.children.map(item => ({title: item.title, key: item.key}))] : []});
+        if (temp.children) { 
+           keysCol.push(...getTreeKeys(temp.children, level+1, temp.key));
+        }
+    }
+    return keysCol;
+}
+
+console.log(getTreeKeys(treeData));
+
